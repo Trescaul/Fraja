@@ -97,7 +97,11 @@ export default function AIAnalyzer({ symbol: initialSymbol, price: currentPrice 
         {analysis && !isAnalyzing && (
           <div className="space-y-6">
             {/* FNG Monitor */}
-            {fngData && ( /* ... existing FNG code ... */ )}
+            {fngData && (
+  <div>
+    {/* Your FNG code goes here */}
+  </div>
+)}
 
             {/* RESTORED: Confidence Monitor */}
             <div className="space-y-2">
