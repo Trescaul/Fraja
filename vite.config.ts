@@ -6,7 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    // This base path is required for GitHub Pages
+    // This tells the app to look for files inside the /Fraja/ subfolder
     base: '/Fraja/', 
     plugins: [react(), tailwindcss()],
     define: {
@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };
