@@ -1,0 +1,122 @@
+{
+  "entities": {
+    "AcademyProgress": {
+      "title": "Academy Progress",
+      "description": "Educational tracking data.",
+      "type": "object",
+      "properties": {
+        "completedIds": {
+          "type": "array",
+          "description": "List of lesson IDs completed by the user."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last sync timestamp."
+        }
+      },
+      "required": ["completedIds", "updatedAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Basic user account information and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isVerified": { "type": "boolean" },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "defaultMarket": { "type": "string" },
+            "riskLevel": { "type": "string", "enum": ["low", "medium", "high"] }
+          }
+        }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Strategy": {
+      "title": "Trading Strategy",
+      "description": "Defined strategy parameters for the AI robot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "market": { "type": "string" },
+        "timeframe": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "stopLossPercent": { "type": "number" },
+            "takeProfitPercent": { "type": "number" },
+            "positionSize": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "name", "market"]
+    },
+    "Trade": {
+      "title": "Trade Execution",
+      "description": "Record of an executed trade",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "strategyId": { "type": "string" },
+        "market": { "type": "string" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string", "enum": ["buy", "sell"] },
+        "entryPrice": { "type": "number" },
+        "exitPrice": { "type": "number" },
+        "units": { "type": "number" },
+        "status": { "type": "string", "enum": ["open", "closed", "cancelled"] },
+        "pnl": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "market", "symbol", "side", "entryPrice", "status"]
+    },
+    "Alert": {
+      "title": "Price Alert",
+      "description": "User defined price alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "symbol": { "type": "string" },
+        "price": { "type": "number" },
+        "condition": { "type": "string", "enum": ["above", "below"] },
+        "isTriggered": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "symbol", "price", "condition"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Global user profiles"
+    },
+    "/users/{userId}/academy/progress": {
+      "schema": "AcademyProgress",
+      "description": "Tracks lesson completion for the academy."
+    },
+    "/strategies/{strategyId}": {
+      "schema": "Strategy",
+      "description": "User strategies for AI execution"
+    },
+    "/trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "Historical and active trades"
+    },
+    "/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "Custom user price alerts"
+    }
+  }
+}

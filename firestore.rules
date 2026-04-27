@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Helper Primitives
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // 2. Validation Helpers
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.email is string &&
+             data.email.size() < 256;
+    }
+
+    function isValidStrategy(data) {
+      return data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.market is string &&
+             data.parameters is map &&
+             data.parameters.stopLossPercent is number &&
+             data.parameters.positionSize is number;
+    }
+
+    function isValidTrade(data) {
+      return data.userId == request.auth.uid &&
+             data.symbol is string &&
+             data.side in ['buy', 'sell'] &&
+             data.entryPrice is number &&
+             data.status in ['open', 'closed', 'cancelled'];
+    }
+
+    function isValidAcademyProgress(data) {
+      return data.completedIds is list &&
+             data.updatedAt is string;
+    }
+
+    // 1. Entity Rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'preferences']);
+      
+      match /academy/progress {
+        allow get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidAcademyProgress(incoming());
+      }
+    }
+
+    match /strategies/{strategyId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidStrategy(incoming());
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && 
+                    isValidStrategy(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'isActive', 'parameters']);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /trades/{tradeId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidTrade(incoming());
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && 
+                    isValidTrade(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['exitPrice', 'status', 'pnl']);
+    }
+
+    match /alerts/{alertId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['isTriggered']);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

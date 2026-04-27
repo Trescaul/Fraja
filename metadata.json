@@ -1,0 +1,6 @@
+{
+  "name": "FraJa Intelligence",
+  "description": "Institutional-grade AI trading platform by FraJa, featuring SMC intelligence, high-precision technical analysis, and automated execution node.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}
